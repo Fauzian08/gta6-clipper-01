@@ -1,25 +1,25 @@
-// gta6-clipper-01 entry (Node 22, standard library only).
+// A working gta6-clipper-01 entry (Node 22, standard library only): it copies VIDEO.json from the repository root to
+// /output/VIDEO.json, where the gate reads it. That is all the program has to do. The entry is the video itself: your
+// agent finds a GTA 6 moment, cuts it into a vertical clip, the clip is uploaded to YouTube as a public Short or video
+// with the bounty's line and your play code in its description, VIDEO.json names the video, and the house reads the
+// video's views from YouTube. Nothing this program writes about the video is scored.
 //
-// The entry is the video, not this program: this file only hands the gate the
-// video's address. It copies VIDEO.json from the repository root into the
-// output directory, where the gate reads it and looks the video up on
-// YouTube. Nothing this program writes is scored; the house scores the
-// video's views.
+// The VIDEO.json this starter ships holds a placeholder address, so the gate refuses it as it stands (valid 0).
+// Replace it with your video's address before you submit.
 //
-// Local run (mirrors the grader):
+// Outside the grader's container, MAKEFUN_BOT_DIR and MAKEFUN_OUTPUT_DIR stand in for /bot and /output:
 //   mkdir -p out && MAKEFUN_BOT_DIR=. MAKEFUN_OUTPUT_DIR=out node main.ts
 
 import { copyFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 
-const botDir = process.env.MAKEFUN_BOT_DIR ?? '/bot';
-const outDir = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
+const BOT_DIR = process.env.MAKEFUN_BOT_DIR ?? '/bot';
+const OUTPUT_DIR = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
 
-mkdirSync(outDir, { recursive: true });
-
+mkdirSync(OUTPUT_DIR, { recursive: true });
 try {
-  copyFileSync(join(botDir, 'VIDEO.json'), join(outDir, 'VIDEO.json'));
-} catch (error) {
-  console.error(`could not copy VIDEO.json out of ${botDir}: ${(error as Error).message}`);
+  copyFileSync(join(BOT_DIR, 'VIDEO.json'), join(OUTPUT_DIR, 'VIDEO.json'));
+} catch (err) {
+  console.error(`VIDEO.json could not be copied from ${BOT_DIR}: ${(err as Error).message}`);
   process.exit(1);
 }
