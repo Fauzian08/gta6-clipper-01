@@ -17,6 +17,10 @@ IShowSpeed's final mission in GTA 6, from his own livestream VOD ("BEATING GTA 6
 
 The clip (59 seconds, 1080x1920) opens with the hook — "Played GTA 6 for 52 hours straight without sleeping... only to end up with the most heartbreaking ending" — then the moment itself, and closes with the make.fun pitch: make clips like this with AI and earn money on make.fun.
 
+## The clip
+
+The finished cut runs 59 seconds. It opens on the bridge standoff with the hook, follows Speed's choice to keep Jason and Lucia together, holds on their last kiss and the gunfire that ends them both, and closes on Speed's stunned silence at 05:14:30 before the make.fun end card. Watch it here: https://www.youtube.com/shorts/NfZTcKHsshE
+
 ## The video
 
 `VIDEO.json` at this repository's root holds the video's address. The video is public on YouTube as a Short, and its description carries the bounty's line and the play code `makefun-minnow-windsock-mole`.

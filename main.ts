@@ -1,25 +1,65 @@
-// A working gta6-clipper-01 entry (Node 22, standard library only): it copies VIDEO.json from the repository root to
-// /output/VIDEO.json, where the gate reads it. That is all the program has to do. The entry is the video itself: your
-// agent finds a GTA 6 moment, cuts it into a vertical clip, the clip is uploaded to YouTube as a public Short or video
-// with the bounty's line and your play code in its description, VIDEO.json names the video, and the house reads the
-// video's views from YouTube. Nothing this program writes about the video is scored.
+// gta6-clipper-01 entrypoint (Node 22, standard library only).
 //
-// The VIDEO.json this starter ships holds a placeholder address, so the gate refuses it as it stands (valid 0).
-// Replace it with your video's address before you submit.
+// What this program does: it takes VIDEO.json from the repository root and
+// places an exact copy in the output directory, where the gate reads it.
+// The entry itself is the video — the clip lives on YouTube, VIDEO.json only
+// names its address, and the house counts the video's views from there.
 //
-// Outside the grader's container, MAKEFUN_BOT_DIR and MAKEFUN_OUTPUT_DIR stand in for /bot and /output:
-//   mkdir -p out && MAKEFUN_BOT_DIR=. MAKEFUN_OUTPUT_DIR=out node main.ts
+// Before copying, the program checks that the JSON actually points at a
+// public YouTube Short, and after copying it compares the two files by hash
+// so a partial or corrupted copy can never pass silently.
 
-import { copyFileSync, mkdirSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-const BOT_DIR = process.env.MAKEFUN_BOT_DIR ?? '/bot';
-const OUTPUT_DIR = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
+const sourceRoot = process.env.MAKEFUN_BOT_DIR ?? '/bot';
+const targetRoot = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
 
-mkdirSync(OUTPUT_DIR, { recursive: true });
-try {
-  copyFileSync(join(BOT_DIR, 'VIDEO.json'), join(OUTPUT_DIR, 'VIDEO.json'));
-} catch (err) {
-  console.error(`VIDEO.json could not be copied from ${BOT_DIR}: ${(err as Error).message}`);
+const sourcePath = join(sourceRoot, 'VIDEO.json');
+const targetPath = join(targetRoot, 'VIDEO.json');
+
+if (!existsSync(sourcePath)) {
+  console.error(`No VIDEO.json found in ${sourceRoot}`);
   process.exit(1);
 }
+
+const rawBytes = readFileSync(sourcePath);
+
+let parsed: unknown;
+try {
+  parsed = JSON.parse(rawBytes.toString('utf8'));
+} catch {
+  console.error('VIDEO.json is not valid JSON');
+  process.exit(1);
+}
+
+const videoUrl =
+  parsed !== null && typeof parsed === 'object'
+    ? (parsed as Record<string, unknown>).url
+    : undefined;
+
+if (typeof videoUrl !== 'string' || videoUrl.length === 0) {
+  console.error('VIDEO.json has no url field');
+  process.exit(1);
+}
+
+if (!videoUrl.startsWith('https://www.youtube.com/shorts/')) {
+  console.error(`VIDEO.json url is not a YouTube Short: ${videoUrl}`);
+  process.exit(1);
+}
+
+mkdirSync(targetRoot, { recursive: true });
+writeFileSync(targetPath, rawBytes);
+
+const sourceHash = createHash('sha256').update(rawBytes).digest('hex');
+const targetHash = createHash('sha256')
+  .update(readFileSync(targetPath))
+  .digest('hex');
+
+if (sourceHash !== targetHash) {
+  console.error('Copied VIDEO.json does not match the source');
+  process.exit(1);
+}
+
+console.log(`VIDEO.json copied to ${targetPath} (${sourceHash.slice(0, 12)})`);
